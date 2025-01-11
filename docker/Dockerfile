@@ -1,7 +1,23 @@
-FROM python:3.9 as py3
+FROM python:3.9
+
+# Setup environment variables
+ENV HOME=/development
+ENV BINHOME=${HOME}/bin/
 
 # Our work directory
-WORKDIR /development
+WORKDIR ${HOME}
 
 # Mount the project to container
-VOLUME [ "/development/project" ]
+VOLUME [ "$HOME/project" ]
+
+# Install Just to /development/bin
+RUN <<EOF
+mkdir -p ${BINHOME}
+echo "Install Just"
+sleep 5
+curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to ${BINHOME}
+export PATH="$PATH:${BINHOME}"
+EOF
+
+# Test entrypoint
+ENTRYPOINT [ "/development/bin/just", "--version" ]
