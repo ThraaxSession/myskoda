@@ -18,12 +18,14 @@ class Endpoint(StrEnum):
     INFO = "info"
     STATUS = "status"
     AIR_CONDITIONING = "air_conditioning"
+    AUXILIARY_HEATING = "auxiliary_heating"
     POSITIONS = "positions"
     HEALTH = "health"
     CHARGING = "charging"
     MAINTENANCE = "maintenance"
     DRIVING_RANGE = "driving_range"
     TRIP_STATISTICS = "trip_statistics"
+    DEPARTURE_INFO = "departure_info"
     ALL = "all"
 
 
@@ -72,5 +74,6 @@ class Fixture(DataClassORJSONMixin, DataClassYAMLMixin):
     name: str
     description: str | None
     generation_time: datetime
+    library_version: str
     vehicles: list[FixtureVehicle]
     reports: list[FixtureReportGet] | None

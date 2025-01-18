@@ -1,3 +1,4 @@
+library_version: legacy
 description: null
 generation_time: '2024-11-13T17:27:43.030082+00:00'
 name: O2023
@@ -299,7 +300,7 @@ reports:
       - FRIDAY
       - SATURDAY
       - SUNDAY
-      time: 00:00:00
+      time: 00:00
       type: RECURRING
     - enabled: false
       id: 2
@@ -311,7 +312,7 @@ reports:
       - FRIDAY
       - SATURDAY
       - SUNDAY
-      time: 00:00:00
+      time: 00:00
       type: RECURRING
     - enabled: false
       id: 3
@@ -323,13 +324,14 @@ reports:
       - FRIDAY
       - SATURDAY
       - SUNDAY
-      time: 00:00:00
+      time: 00:00
       type: RECURRING
     window_heating_enabled: null
     window_heating_state:
       front: INVALID
       rear: INVALID
       unspecified: INVALID
+    outside_temperature: null
   success: true
   type: get
   url: /v2/air-conditioning/TMOCKAA0AA000000
@@ -517,6 +519,7 @@ reports:
     - average_aux_consumption: null
       average_electric_consumption: null
       average_fuel_consumption: 9.8
+      average_gas_consumption: null
       average_recuperation: null
       average_speed_in_kmph: 23
       date: '2024-11-11'
@@ -528,6 +531,7 @@ reports:
     - average_aux_consumption: null
       average_electric_consumption: null
       average_fuel_consumption: 7.39
+      average_gas_consumption: null
       average_recuperation: null
       average_speed_in_kmph: 30
       date: '2024-11-12'
@@ -539,6 +543,7 @@ reports:
     - average_aux_consumption: null
       average_electric_consumption: null
       average_fuel_consumption: 13.1
+      average_gas_consumption: null
       average_recuperation: null
       average_speed_in_kmph: 21
       date: '2024-11-13'
@@ -549,6 +554,7 @@ reports:
     - average_aux_consumption: null
       average_electric_consumption: null
       average_fuel_consumption: null
+      average_gas_consumption: null
       average_recuperation: null
       average_speed_in_kmph: null
       date: '2024-11-14'
@@ -558,6 +564,7 @@ reports:
     - average_aux_consumption: null
       average_electric_consumption: null
       average_fuel_consumption: null
+      average_gas_consumption: null
       average_recuperation: null
       average_speed_in_kmph: null
       date: '2024-11-15'
@@ -567,6 +574,7 @@ reports:
     - average_aux_consumption: null
       average_electric_consumption: null
       average_fuel_consumption: null
+      average_gas_consumption: null
       average_recuperation: null
       average_speed_in_kmph: null
       date: '2024-11-16'
@@ -576,6 +584,7 @@ reports:
     - average_aux_consumption: null
       average_electric_consumption: null
       average_fuel_consumption: null
+      average_gas_consumption: null
       average_recuperation: null
       average_speed_in_kmph: null
       date: '2024-11-17'
@@ -584,6 +593,7 @@ reports:
       trip_ids: null
     overall_average_electric_consumption: null
     overall_average_fuel_consumption: 8.24
+    overall_average_gas_consumption: null
     overall_average_mileage_in_km: 12
     overall_average_speed_in_kmph: 28
     overall_average_travel_time_in_min: 27

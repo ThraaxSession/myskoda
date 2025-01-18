@@ -1,3 +1,4 @@
+library_version: legacy
 description: Prior99's Enyaq iV 60 standing idle without power connected.
 generation_time: '2024-10-15T17:49:46.831111+00:00'
 name: prior99_enyaq_iv60_idle_full_battery
@@ -325,19 +326,20 @@ reports:
       id: 1
       selected_days:
       - TUESDAY
-      time: '19:20:00'
+      time: '19:20'
       type: ONE_OFF
     - enabled: false
       id: 2
       selected_days:
       - FRIDAY
-      time: 09:50:00
+      time: '09:50'
       type: ONE_OFF
     window_heating_enabled: true
     window_heating_state:
       front: 'OFF'
       rear: 'OFF'
       unspecified: INVALID
+    outside_temperature: null
   success: true
   type: get
   url: /v2/air-conditioning/TMOCKAA0AA000000

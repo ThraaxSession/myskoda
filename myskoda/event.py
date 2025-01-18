@@ -8,12 +8,13 @@ from typing import Literal
 from mashumaro.mixins.orjson import DataClassORJSONMixin
 
 from .models.operation_request import OperationRequest
-from .models.service_event import ServiceEvent, ServiceEventCharging
+from .models.service_event import ServiceEvent
 
 
 class ServiceEventTopic(StrEnum):
     ACCESS = "ACCESS"
     AIR_CONDITIONING = "AIR_CONDITIONING"
+    AUXILIARY_HEATING = "AUXILIARY_HEATING"
     CHARGING = "CHARGING"
     LIGHTS = "LIGHTS"
     DEPARTURE = "DEPARTURE"
@@ -50,8 +51,15 @@ class EventAirConditioning(BaseEvent):
 
 
 @dataclass
+class EventAuxiliaryHeating(BaseEvent):
+    event: ServiceEvent
+    type: Literal[EventType.SERVICE_EVENT] = EventType.SERVICE_EVENT
+    topic: Literal[ServiceEventTopic.AUXILIARY_HEATING] = ServiceEventTopic.AUXILIARY_HEATING
+
+
+@dataclass
 class EventCharging(BaseEvent):
-    event: ServiceEventCharging
+    event: ServiceEvent
     type: Literal[EventType.SERVICE_EVENT] = EventType.SERVICE_EVENT
     topic: Literal[ServiceEventTopic.CHARGING] = ServiceEventTopic.CHARGING
 
@@ -88,6 +96,7 @@ Event = (
     | EventOperation
     | EventAccess
     | EventAirConditioning
+    | EventAuxiliaryHeating
     | EventCharging
     | EventLights
     | EventDeparture

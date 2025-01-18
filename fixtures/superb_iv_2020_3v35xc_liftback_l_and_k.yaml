@@ -1,3 +1,4 @@
+library_version: legacy
 description: Superb iV 2020, idle, locked, not charging, cable not connected
 generation_time: '2024-10-16T18:16:40.252125+00:00'
 name: superb_iv_2020_3V35XC_liftback_l_and_k
@@ -312,6 +313,7 @@ reports:
       front: 'OFF'
       rear: 'OFF'
       unspecified: INVALID
+    outside_temperature: null
   success: true
   type: get
   url: /v2/air-conditioning/TMOCKAA0AA000000
@@ -427,21 +429,21 @@ reports:
     "2024-06-01T07:19:29Z", "acceptedDate": "2024-06-03T06:40:24Z", "confirmationDate":
     "2024-06-01T07:25:01.104Z", "closedDate": "2024-06-03T06:41:15Z", "contactedDate":
     "2024-06-03T06:41:15Z", "updateDate": "2024-06-03T06:45:47.782Z", "servicePartner":
-    {"name": "Helkama-Autokauppa Olari", "brand": "C", "partnerNumber": "50433", "id":
-    "FINC50433", "contact": {"phone": "010 436 2800", "email": "huolto@helkama-autokauppa.fi"},
-    "address": {"street": "Luomannotko 3", "zipCode": "02200", "city": "Espoo", "countryCode":
-    "FIN"}, "location": {"latitude": 60.1801, "longitude": 24.755453}, "openingHours":
+    {"name": "Example Service Partner", "brand": "C", "partnerNumber": "11111", "id":
+    "DEU11111", "contact": {"phone": "+49 1234 567890", "email": "user@example.com"},
+    "address": {"street": "Example Avenue", "zipCode": "54321", "city": "Example City", "countryCode":
+    "DEU"}, "location": {"latitude": 53.470636, "longitude": 9.689872}, "openingHours":
     []}, "bookingId": "5c459c5f-d599-443d-9d60-3f95be1e463a-1717226381265", "mileageInKm":
     42812, "resolution": "REJECTED", "type": "AUTO", "extras": [], "addOns": {}, "warnings":
     [{"iconName": "", "messageId": "A645", "notificationId": 42565, "text": "42565"},
     {"iconName": "", "messageId": "A640", "notificationId": 42560, "text": "42560"}]},
     {"creationDate": "2023-11-02T06:43:27Z", "acceptedDate": "2023-11-06T11:30:36Z",
     "confirmationDate": "2023-11-02T06:50:01.922Z", "closedDate": "2023-11-06T11:32:08Z",
-    "updateDate": "2023-11-06T11:35:09.021Z", "servicePartner": {"name": "Helkama-Autokauppa
-    Olari", "brand": "C", "partnerNumber": "50433", "id": "FINC50433", "contact":
-    {"phone": "010 436 2800", "email": "huolto@helkama-autokauppa.fi"}, "address":
-    {"street": "Luomannotko 3", "zipCode": "02200", "city": "Espoo", "countryCode":
-    "FIN"}, "location": {"latitude": 60.1801, "longitude": 24.755453}, "openingHours":
+    "updateDate": "2023-11-06T11:35:09.021Z", "servicePartner": {"name": "Example Service Partner",
+    "brand": "C", "partnerNumber": "11111", "id": "DEU11111", "contact":
+    {"phone": "+49 1234 567890", "email": "user@example.com"}, "address":
+    {"street": "Example Avenue", "zipCode": "54321", "city": "Example City", "countryCode":
+    "DEU"}, "location": {"latitude": 53.470636, "longitude": 9.689872}, "openingHours":
     []}, "bookingId": "4788f202-79be-4545-9647-de34edcce77c-1698907410727", "mileageInKm":
     36131, "resolution": "REJECTED", "type": "AUTO", "extras": [], "addOns": {}, "warnings":
     [{"iconName": "H_2_19", "messageId": "A2CB", "notificationId": 41675, "text":
@@ -534,6 +536,7 @@ reports:
   result:
     detailed_statistics:
     - average_fuel_consumption: 0.0
+      average_gas_consumption: null
       average_speed_in_kmph: 49
       average_aux_consumption: null
       average_electric_consumption: 21.0
@@ -544,6 +547,7 @@ reports:
       trip_ids:
       - 3390168222
     - average_fuel_consumption: 0.0
+      average_gas_consumption: null
       average_speed_in_kmph: 30
       average_aux_consumption: null
       average_electric_consumption: 10.35
@@ -555,6 +559,7 @@ reports:
       - 3393116584
       - 3398500831
     - average_fuel_consumption: 0.0
+      average_gas_consumption: null
       average_speed_in_kmph: 31
       average_aux_consumption: null
       average_electric_consumption: 25.8
@@ -565,6 +570,7 @@ reports:
       trip_ids:
       - 3403348176
     - average_fuel_consumption: null
+      average_gas_consumption: null
       average_speed_in_kmph: null
       average_aux_consumption: null
       average_electric_consumption: null
@@ -574,6 +580,7 @@ reports:
       travel_time_in_min: null
       trip_ids: null
     - average_fuel_consumption: null
+      average_gas_consumption: null
       average_speed_in_kmph: null
       average_aux_consumption: null
       average_electric_consumption: null
@@ -583,6 +590,7 @@ reports:
       travel_time_in_min: null
       trip_ids: null
     - average_fuel_consumption: null
+      average_gas_consumption: null
       average_speed_in_kmph: null
       average_aux_consumption: null
       average_electric_consumption: null
@@ -592,6 +600,7 @@ reports:
       travel_time_in_min: null
       trip_ids: null
     - average_fuel_consumption: null
+      average_gas_consumption: null
       average_speed_in_kmph: null
       average_aux_consumption: null
       average_electric_consumption: null
@@ -602,6 +611,7 @@ reports:
       trip_ids: null
     overall_average_electric_consumption: 17.99
     overall_average_fuel_consumption: 0.0
+    overall_average_gas_consumption: null
     overall_average_mileage_in_km: 14
     overall_average_speed_in_kmph: 36
     overall_average_travel_time_in_min: 24

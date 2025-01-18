@@ -28,6 +28,8 @@ MQTT_OPERATION_TOPICS = [
     "charging/update-charge-mode",
     "charging/update-charging-profiles",
     "charging/update-charging-current",
+    "departure/update-departure-timers",
+    "departure/update-minimal-soc",
     "vehicle-access/honk-and-flash",
     "vehicle-access/lock-vehicle",
     "vehicle-services-backup/apply-backup",
@@ -45,9 +47,10 @@ MQTT_SERVICE_EVENT_TOPICS = [
 MQTT_ACCOUNT_EVENT_TOPICS = [
     "account-event/privacy",
 ]
-MQTT_KEEPALIVE = 15
+MQTT_KEEPALIVE = 60
 MQTT_RECONNECT_DELAY = 5
-
+MQTT_MAX_RECONNECT_DELAY = 600
+MQTT_FAST_RETRY = 10
 MAX_RETRIES = 5
 
 REQUEST_TIMEOUT_IN_SECONDS = 300

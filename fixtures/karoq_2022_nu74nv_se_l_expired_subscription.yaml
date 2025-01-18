@@ -1,3 +1,4 @@
+library_version: legacy
 description: null
 generation_time: '2024-10-23T13:01:22.949387+00:00'
 name: get_all
@@ -269,6 +270,7 @@ reports:
       front: INVALID
       rear: INVALID
       unspecified: INVALID
+    outside_temperature: null
   success: true
   type: get
   url: /v2/air-conditioning/TMOCKAA0AA000000

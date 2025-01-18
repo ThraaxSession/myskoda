@@ -6,6 +6,11 @@ from enum import StrEnum
 from typing import Any
 
 from mashumaro import field_options
+from mashumaro.config import (
+    TO_DICT_ADD_BY_ALIAS_FLAG,
+    TO_DICT_ADD_OMIT_NONE_FLAG,
+    BaseConfig,
+)
 from mashumaro.mixins.orjson import DataClassORJSONMixin
 
 from .common import ChargerLockedState, ConnectionState, OnOffState, Side, Weekday
@@ -30,31 +35,66 @@ class AirConditioningState(StrEnum):
     INVALID = "INVALID"
 
 
-# Probaly other states than AUTOMATIC are available, to be discovered
+# Probably other states than AUTOMATIC are available, to be discovered
 class HeaterSource(StrEnum):
     AUTOMATIC = "AUTOMATIC"
     ELECTRIC = "ELECTRIC"
 
 
 @dataclass
-class Timer(DataClassORJSONMixin):
+class AirConditioningTimer(DataClassORJSONMixin):
     enabled: bool
     id: int
     time: time
     type: TimerMode
     selected_days: list[Weekday] = field(metadata=field_options(alias="selectedDays"))
 
+    class Config(BaseConfig):
+        """Configuration for serialization and deserialization.."""
+
+        code_generation_options = [  # noqa: RUF012
+            TO_DICT_ADD_BY_ALIAS_FLAG
+        ]
+
+    def __post_serialize__(self, d: dict[Any, Any]) -> dict[Any, Any]:
+        """Post-process the data before serialization."""
+        if self.time:
+            d["time"] = self.time.strftime("%H:%M")  # Format to hh:mm
+        return d
+
 
 @dataclass
 class SeatHeating(DataClassORJSONMixin):
-    front_left: bool = field(metadata=field_options(alias="frontLeft"))
-    front_right: bool = field(metadata=field_options(alias="frontRight"))
+    front_left: bool | None = field(default=None, metadata=field_options(alias="frontLeft"))
+    front_right: bool | None = field(default=None, metadata=field_options(alias="frontRight"))
+
+    class Config(BaseConfig):
+        """Configuration for serialization and deserialization.."""
+
+        code_generation_options = [  # noqa: RUF012
+            TO_DICT_ADD_BY_ALIAS_FLAG,
+            TO_DICT_ADD_OMIT_NONE_FLAG,
+        ]
 
 
 @dataclass
 class TargetTemperature(DataClassORJSONMixin):
     temperature_value: float = field(metadata=field_options(alias="temperatureValue"))
-    unit_in_car: TemperatureUnit = field(metadata=field_options(alias="unitInCar"))
+    unit_in_car: TemperatureUnit = field(
+        default=TemperatureUnit.CELSIUS, metadata=field_options(alias="unitInCar")
+    )
+
+    class Config(BaseConfig):
+        """Configuration for serialization and deserialization.."""
+
+        code_generation_options = [TO_DICT_ADD_BY_ALIAS_FLAG]  # noqa: RUF012
+
+
+@dataclass
+class OutsideTemperature(TargetTemperature):
+    car_captured_timestamp: datetime | None = field(
+        default=None, metadata=field_options(alias="carCapturedTimestamp")
+    )
 
 
 @dataclass
@@ -65,15 +105,57 @@ class WindowHeatingState(DataClassORJSONMixin):
 
 
 @dataclass
+class AirConditioningAtUnlock(DataClassORJSONMixin):
+    """AirConditioningAtUnlock setting."""
+
+    air_conditioning_at_unlock_enabled: bool = field(
+        metadata=field_options(alias="airConditioningAtUnlockEnabled")
+    )
+
+    class Config(BaseConfig):
+        """Configuration for serialization and deserialization.."""
+
+        serialize_by_alias = True
+
+
+@dataclass
+class AirConditioningWithoutExternalPower(DataClassORJSONMixin):
+    """AirConditioningWithoutExternalPower setting."""
+
+    air_conditioning_without_external_power_enabled: bool = field(
+        metadata=field_options(alias="airConditioningWithoutExternalPowerEnabled")
+    )
+
+    class Config(BaseConfig):
+        """Configuration for serialization and deserialization.."""
+
+        serialize_by_alias = True
+
+
+@dataclass
+class WindowHeating(DataClassORJSONMixin):
+    """WindowHeating setting."""
+
+    window_heating_enabled: bool = field(metadata=field_options(alias="windowHeatingEnabled"))
+
+    class Config(BaseConfig):
+        """Configuration for serialization and deserialization.."""
+
+        serialize_by_alias = True
+
+
+@dataclass
 class AirConditioning(DataClassORJSONMixin):
     """Information related to air conditioning."""
 
-    timers: list[Timer]
+    timers: list[AirConditioningTimer]
     errors: list[Any]
     state: AirConditioningState
-    steering_wheel_position: Side = field(metadata=field_options(alias="steeringWheelPosition"))
-    window_heating_state: WindowHeatingState = field(
-        metadata=field_options(alias="windowHeatingState")
+    steering_wheel_position: Side | None = field(
+        default=None, metadata=field_options(alias="steeringWheelPosition")
+    )
+    window_heating_state: WindowHeatingState | None = field(
+        default=None, metadata=field_options(alias="windowHeatingState")
     )
     car_captured_timestamp: datetime | None = field(
         default=None, metadata=field_options(alias="carCapturedTimestamp")
@@ -104,4 +186,7 @@ class AirConditioning(DataClassORJSONMixin):
     )
     air_conditioning_without_external_power: bool | None = field(
         default=None, metadata=field_options(alias="airConditioningWithoutExternalPower")
+    )
+    outside_temperature: OutsideTemperature | None = field(
+        default=None, metadata=field_options(alias="outsideTemperature")
     )

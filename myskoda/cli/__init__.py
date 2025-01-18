@@ -20,9 +20,18 @@ from myskoda.cli.operations import (
     flash,
     honk_flash,
     lock,
+    set_ac_at_unlock,
+    set_ac_timer,
+    set_ac_without_external_power,
+    set_auto_unlock_plug,
+    set_aux_timer,
     set_charge_limit,
+    set_departure_timer,
+    set_minimum_charge_limit,
     set_reduced_current_limit,
+    set_seats_heating,
     set_target_temperature,
+    set_windows_heating,
     start_air_conditioning,
     start_auxiliary_heating,
     start_window_heating,
@@ -35,7 +44,9 @@ from myskoda.cli.operations import (
 from myskoda.cli.requests import (
     air_conditioning,
     auth,
+    auxiliary_heating,
     charging,
+    departure_timers,
     driving_range,
     garage,
     health,
@@ -134,6 +145,7 @@ cli.add_command(list_vehicles)
 cli.add_command(info)
 cli.add_command(status)
 cli.add_command(air_conditioning)
+cli.add_command(auxiliary_heating)
 cli.add_command(positions)
 cli.add_command(health)
 cli.add_command(charging)
@@ -151,6 +163,7 @@ cli.add_command(set_target_temperature)
 cli.add_command(start_window_heating)
 cli.add_command(stop_window_heating)
 cli.add_command(set_charge_limit)
+cli.add_command(set_minimum_charge_limit)
 cli.add_command(set_reduced_current_limit)
 cli.add_command(wakeup)
 cli.add_command(wait_for_operation)
@@ -161,6 +174,16 @@ cli.add_command(unlock)
 cli.add_command(honk_flash)
 cli.add_command(flash)
 cli.add_command(verify_spin)
+cli.add_command(set_ac_without_external_power)
+cli.add_command(set_ac_at_unlock)
+cli.add_command(set_windows_heating)
+cli.add_command(set_seats_heating)
+cli.add_command(set_auto_unlock_plug)
+cli.add_command(departure_timers)
+cli.add_command(set_departure_timer)
+cli.add_command(set_ac_timer)
+cli.add_command(set_aux_timer)
+
 
 if __name__ == "__main__":
     cli()

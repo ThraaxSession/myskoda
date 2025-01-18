@@ -1,7 +1,9 @@
 """Represents a whole vehicle."""
 
 from .models.air_conditioning import AirConditioning
+from .models.auxiliary_heating import AuxiliaryHeating
 from .models.charging import Charging
+from .models.departure import DepartureInfo
 from .models.driving_range import DrivingRange
 from .models.health import Health
 from .models.info import CapabilityId, Info
@@ -18,11 +20,13 @@ class Vehicle:
     charging: Charging | None = None
     status: Status | None = None
     air_conditioning: AirConditioning | None = None
+    auxiliary_heating: AuxiliaryHeating | None = None
     positions: Positions | None = None
     driving_range: DrivingRange | None = None
     trip_statistics: TripStatistics | None = None
     maintenance: Maintenance
     health: Health | None = None
+    departure_info: DepartureInfo | None = None
 
     def __init__(self, info: Info, maintenance: Maintenance) -> None:  # noqa: D107
         self.info = info

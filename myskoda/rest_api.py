@@ -5,12 +5,16 @@ import json
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import UTC, datetime
+from urllib.parse import quote
 
 from aiohttp import ClientResponseError, ClientSession
 
 from myskoda.anonymize import (
     anonymize_air_conditioning,
+    anonymize_auxiliary_heating,
     anonymize_charging,
+    anonymize_departure_timers,
     anonymize_driving_range,
     anonymize_garage,
     anonymize_health,
@@ -28,8 +32,17 @@ from myskoda.models.position import Position, PositionType
 
 from .auth.authorization import Authorization
 from .const import BASE_URL_SKODA, REQUEST_TIMEOUT_IN_SECONDS
-from .models.air_conditioning import AirConditioning
+from .models.air_conditioning import (
+    AirConditioning,
+    AirConditioningAtUnlock,
+    AirConditioningTimer,
+    AirConditioningWithoutExternalPower,
+    SeatHeating,
+    WindowHeating,
+)
+from .models.auxiliary_heating import AuxiliaryConfig, AuxiliaryHeating, AuxiliaryHeatingTimer
 from .models.charging import Charging
+from .models.departure import DepartureInfo, DepartureTimer
 from .models.driving_range import DrivingRange
 from .models.health import Health
 from .models.info import Info
@@ -164,6 +177,20 @@ class RestApi:
         url = anonymize_url(url) if anonymize else url
         return GetEndpointResult(url=url, raw=raw, result=result)
 
+    async def get_auxiliary_heating(
+        self, vin: str, anonymize: bool = False
+    ) -> GetEndpointResult[AuxiliaryHeating]:
+        """Retrieve the current auxiliary heating status for the specified vehicle."""
+        url = f"/v2/air-conditioning/{vin}/auxiliary-heating"
+        raw = self.process_json(
+            data=await self._make_get_request(url),
+            anonymize=anonymize,
+            anonymization_fn=anonymize_auxiliary_heating,
+        )
+        result = self._deserialize(raw, AuxiliaryHeating.from_json)
+        url = anonymize_url(url) if anonymize else url
+        return GetEndpointResult(url=url, raw=raw, result=result)
+
     async def get_positions(
         self, vin: str, anonymize: bool = False
     ) -> GetEndpointResult[Positions]:
@@ -254,6 +281,33 @@ class RestApi:
         result = self._deserialize(raw, Garage.from_json)
         return GetEndpointResult(url=url, raw=raw, result=result)
 
+    async def get_departure_timers(
+        self, vin: str, anonymize: bool = False
+    ) -> GetEndpointResult[DepartureInfo]:
+        """Retrieve departure timers for the vehicle."""
+        # Get the current local time with timezone
+        now = datetime.now().astimezone()
+        # Format the datetime string with timezone
+        formatted_time = (
+            now.strftime("%Y-%m-%dT%H:%M:%S.%f")
+            + now.strftime("%z")[:3]
+            + ":"
+            + now.strftime("%z")[3:]
+        )
+
+        url = (
+            f"/v1/vehicle-automatization/{vin}/departure/timers"
+            f"?deviceDateTime={quote(formatted_time, safe='')}"
+        )
+        raw = self.process_json(
+            data=await self._make_get_request(url),
+            anonymize=anonymize,
+            anonymization_fn=anonymize_departure_timers,
+        )
+        result = self._deserialize(raw, DepartureInfo.from_json)
+        url = anonymize_url(url) if anonymize else url
+        return GetEndpointResult(url=url, raw=raw, result=result)
+
     async def _headers(self) -> dict[str, str]:
         return {"authorization": f"Bearer {await self.authorization.get_access_token()}"}
 
@@ -264,9 +318,9 @@ class RestApi:
 
     async def start_air_conditioning(self, vin: str, temperature: float) -> None:
         """Start the air conditioning."""
-        round_temp = f"{round(temperature * 2) / 2:.1f}"
+        round_temp = round(temperature * 2) / 2
         _LOGGER.debug(
-            "Starting air conditioning for vehicle %s with temperature %s",
+            "Starting air conditioning for vehicle %s with temperature %.1f",
             vin,
             round_temp,
         )
@@ -287,32 +341,75 @@ class RestApi:
         _LOGGER.debug("Stopping auxiliary heating for vehicle %s", vin)
         await self._make_post_request(url=f"/v2/air-conditioning/{vin}/auxiliary-heating/stop")
 
-    async def start_auxiliary_heating(self, vin: str, temperature: float, spin: str) -> None:
+    async def start_auxiliary_heating(
+        self, vin: str, spin: str, config: AuxiliaryConfig | None = None
+    ) -> None:
         """Start the auxiliary heating."""
-        round_temp = f"{round(temperature * 2) / 2:.1f}"
-        _LOGGER.debug(
-            "Starting auxiliary heating for vehicle %s with temperature %s",
-            vin,
-            round_temp,
-        )
-        json_data = {
-            "heaterSource": "AUTOMATIC",
-            "airConditioningWithoutExternalPower": True,
-            "spin": spin,
-            "targetTemperature": {
-                "temperatureValue": round_temp,
-                "unitInCar": "CELSIUS",
-            },
-        }
+        _LOGGER.debug("Starting auxiliary heating for vehicle %s", vin)
+
+        json_data: dict[str, object] = {"spin": spin}
+        if config is not None:
+            json_data = json_data | config.to_dict(omit_none=True, by_alias=True)
+
         await self._make_post_request(
             url=f"/v2/air-conditioning/{vin}/auxiliary-heating/start",
             json=json_data,
         )
 
+    async def set_ac_without_external_power(
+        self, vin: str, settings: AirConditioningWithoutExternalPower
+    ) -> None:
+        """Enable or disable AC without external power."""
+        _LOGGER.debug(
+            "Setting AC without external power for vehicle %s to %r",
+            vin,
+            settings.air_conditioning_without_external_power_enabled,
+        )
+        json_data = settings.to_dict()
+        await self._make_post_request(
+            url=f"/v2/air-conditioning/{vin}/settings/ac-without-external-power",
+            json=json_data,
+        )
+
+    async def set_ac_at_unlock(self, vin: str, settings: AirConditioningAtUnlock) -> None:
+        """Enable or disable AC at unlock."""
+        _LOGGER.debug(
+            "Setting AC at at unlock for vehicle %s to %r",
+            vin,
+            settings.air_conditioning_at_unlock_enabled,
+        )
+        json_data = settings.to_dict()
+        await self._make_post_request(
+            url=f"/v2/air-conditioning/{vin}/settings/ac-at-unlock",
+            json=json_data,
+        )
+
+    async def set_windows_heating(self, vin: str, settings: WindowHeating) -> None:
+        """Enable or disable windows heating with AC."""
+        _LOGGER.debug(
+            "Setting windows heating with AC for vehicle %s to %r",
+            vin,
+            settings.window_heating_enabled,
+        )
+        json_data = settings.to_dict()
+        await self._make_post_request(
+            url=f"/v2/air-conditioning/{vin}/settings/windows-heating",
+            json=json_data,
+        )
+
+    async def set_seats_heating(self, vin: str, settings: SeatHeating) -> None:
+        """Enable or disable seats heating with AC."""
+        json_data = settings.to_dict(omit_none=True, by_alias=True)
+        _LOGGER.debug("Setting seats heating with AC for vehicle %s: %s", vin, json_data)
+        await self._make_post_request(
+            url=f"/v2/air-conditioning/{vin}/settings/seats-heating",
+            json=json_data,
+        )
+
     async def set_target_temperature(self, vin: str, temperature: float) -> None:
         """Set the air conditioning's target temperature in °C."""
-        round_temp = f"{round(temperature * 2) / 2:.1f}"
-        _LOGGER.debug("Setting target temperature for vehicle %s to %s", vin, round_temp)
+        round_temp = round(temperature * 2) / 2
+        _LOGGER.debug("Setting target temperature for vehicle %s to %.1f", vin, round_temp)
         json_data = {"temperatureValue": round_temp, "unitInCar": "CELSIUS"}
         await self._make_post_request(
             url=f"/v2/air-conditioning/{vin}/settings/target-temperature",
@@ -342,6 +439,20 @@ class RestApi:
             json=json_data,
         )
 
+    async def set_minimum_charge_limit(self, vin: str, limit: int) -> None:
+        """Set minimum battery SoC in percent for departure timer."""
+        _LOGGER.debug(
+            "Setting minimum SoC for departure timers for vehicle %s to %r",
+            vin,
+            limit,
+        )
+
+        json_data = {"minimumBatteryStateOfChargeInPercent": limit}
+        await self._make_post_request(
+            url=f"/v1/vehicle-automatization/{vin}/departure/timers/settings",
+            json=json_data,
+        )
+
     # TODO @dvx76: Maybe refactor for FBT001
     async def set_battery_care_mode(self, vin: str, enabled: bool) -> None:
         """Enable or disable the battery care mode."""
@@ -349,6 +460,16 @@ class RestApi:
         json_data = {"chargingCareMode": "ACTIVATED" if enabled else "DEACTIVATED"}
         await self._make_put_request(
             url=f"/v1/charging/{vin}/set-care-mode",
+            json=json_data,
+        )
+
+    # TODO @dvx76: Maybe refactor for FBT001
+    async def set_auto_unlock_plug(self, vin: str, enabled: bool) -> None:
+        """Enable or disable auto unlock plug when charged."""
+        _LOGGER.debug("Setting auto unlock plug for vehicle %s to %r", vin, enabled)
+        json_data = {"autoUnlockPlug": "PERMANENT" if enabled else "OFF"}
+        await self._make_put_request(
+            url=f"/v1/charging/{vin}/set-auto-unlock-plug",
             json=json_data,
         )
 
@@ -447,6 +568,47 @@ class RestApi:
         }
         await self._make_post_request(
             url=f"/v1/vehicle-access/{vin}/honk-and-flash", json=json_data
+        )
+
+    async def set_departure_timer(self, vin: str, timer: DepartureTimer) -> None:
+        """Set departure timer."""
+        _LOGGER.debug(
+            "Setting departure timer #%i for vehicle %s to %r", timer.id, vin, timer.enabled
+        )
+
+        now = datetime.now(UTC)
+        datetime_str = now.isoformat()
+
+        json_data = {"deviceDateTime": datetime_str, "timers": [timer.to_dict()]}
+        await self._make_post_request(
+            url=f"/v1/vehicle-automatization/{vin}/departure/timers",
+            json=json_data,
+        )
+
+    async def set_ac_timer(self, vin: str, timer: AirConditioningTimer) -> None:
+        """Set air-conditioning timer."""
+        _LOGGER.debug(
+            "Setting air-conditioning timer #%i for vehicle %s to %r", timer.id, vin, timer.enabled
+        )
+
+        json_data = {"timers": [timer.to_dict(by_alias=True)]}
+        await self._make_post_request(
+            url=f"/v2/air-conditioning/{vin}/timers",
+            json=json_data,
+        )
+
+    async def set_auxiliary_heating_timer(
+        self, vin: str, timer: AuxiliaryHeatingTimer, spin: str
+    ) -> None:
+        """Set auxiliary heating timer."""
+        _LOGGER.debug(
+            "Setting auxiliary heating timer #%i for vehicle %s to %r", timer.id, vin, timer.enabled
+        )
+
+        json_data = {"spin": spin, "timers": [timer.to_dict(by_alias=True)]}
+        await self._make_post_request(
+            url=f"/v2/air-conditioning/{vin}/auxiliary-heating/timers",
+            json=json_data,
         )
 
     def _deserialize[T](self, text: str, deserialize: Callable[[str], T]) -> T:

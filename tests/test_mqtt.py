@@ -15,10 +15,10 @@ from myskoda.models.charging import ChargeMode, ChargingState
 from myskoda.models.operation_request import OperationName, OperationRequest, OperationStatus
 from myskoda.models.service_event import (
     ServiceEvent,
-    ServiceEventCharging,
     ServiceEventChargingData,
     ServiceEventData,
     ServiceEventName,
+    ServiceEventWithChargingData,
 )
 from myskoda.myskoda import MySkoda
 
@@ -156,6 +156,22 @@ async def test_subscribe_event(
                 }
             ),
         ),
+        (
+            f"{base_topic}/service-event/charging",
+            json.dumps(
+                {
+                    "version": 1,
+                    "traceId": trace_id,
+                    "timestamp": timestamp_str,
+                    "producer": "SKODA_MHUB",
+                    "name": "charging-completed",
+                    "data": {
+                        "userId": USER_ID,
+                        "vin": VIN,
+                    },
+                }
+            ),
+        ),
     ]
 
     def on_event(event: Event) -> None:
@@ -214,7 +230,7 @@ async def test_subscribe_event(
             vin=VIN,
             user_id=USER_ID,
             timestamp=ANY,
-            event=ServiceEventCharging(
+            event=ServiceEventWithChargingData(
                 version=1,
                 trace_id=trace_id,
                 timestamp=timestamp,
@@ -235,7 +251,7 @@ async def test_subscribe_event(
             vin=VIN,
             user_id=USER_ID,
             timestamp=ANY,
-            event=ServiceEventCharging(
+            event=ServiceEventWithChargingData(
                 version=1,
                 trace_id=trace_id,
                 timestamp=timestamp,
@@ -249,6 +265,22 @@ async def test_subscribe_event(
                     state=ChargingState.CONSERVING,
                     mode=ChargeMode.MANUAL,
                     time_to_finish=0,
+                ),
+            ),
+        ),
+        EventCharging(
+            vin=VIN,
+            user_id=USER_ID,
+            timestamp=ANY,
+            event=ServiceEvent(
+                version=1,
+                trace_id=trace_id,
+                timestamp=timestamp,
+                producer="SKODA_MHUB",
+                name=ServiceEventName.CHARGING_COMPLETED,
+                data=ServiceEventData(
+                    user_id=USER_ID,
+                    vin=VIN,
                 ),
             ),
         ),

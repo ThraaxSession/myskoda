@@ -1,3 +1,4 @@
+library_version: legacy
 description: Parked and locked for over a day
 generation_time: '2024-11-11T20:51:52.948211+00:00'
 name: superb_iv_2021_3V54XC
@@ -321,6 +322,7 @@ reports:
       front: 'OFF'
       rear: 'OFF'
       unspecified: INVALID
+    outside_temperature: null
   success: true
   type: get
   url: /v2/air-conditioning/TMOCKAA0AA000000
@@ -508,6 +510,7 @@ reports:
     - average_aux_consumption: null
       average_electric_consumption: null
       average_fuel_consumption: null
+      average_gas_consumption: null
       average_recuperation: null
       average_speed_in_kmph: null
       date: '2024-11-11'
@@ -517,6 +520,7 @@ reports:
     - average_aux_consumption: null
       average_electric_consumption: null
       average_fuel_consumption: null
+      average_gas_consumption: null
       average_recuperation: null
       average_speed_in_kmph: null
       date: '2024-11-12'
@@ -526,6 +530,7 @@ reports:
     - average_aux_consumption: null
       average_electric_consumption: null
       average_fuel_consumption: null
+      average_gas_consumption: null
       average_recuperation: null
       average_speed_in_kmph: null
       date: '2024-11-13'
@@ -535,6 +540,7 @@ reports:
     - average_aux_consumption: null
       average_electric_consumption: null
       average_fuel_consumption: null
+      average_gas_consumption: null
       average_recuperation: null
       average_speed_in_kmph: null
       date: '2024-11-14'
@@ -544,6 +550,7 @@ reports:
     - average_aux_consumption: null
       average_electric_consumption: null
       average_fuel_consumption: null
+      average_gas_consumption: null
       average_recuperation: null
       average_speed_in_kmph: null
       date: '2024-11-15'
@@ -553,6 +560,7 @@ reports:
     - average_aux_consumption: null
       average_electric_consumption: null
       average_fuel_consumption: null
+      average_gas_consumption: null
       average_recuperation: null
       average_speed_in_kmph: null
       date: '2024-11-16'
@@ -562,6 +570,7 @@ reports:
     - average_aux_consumption: null
       average_electric_consumption: null
       average_fuel_consumption: null
+      average_gas_consumption: null
       average_recuperation: null
       average_speed_in_kmph: null
       date: '2024-11-17'
@@ -570,6 +579,7 @@ reports:
       trip_ids: null
     overall_average_electric_consumption: null
     overall_average_fuel_consumption: null
+    overall_average_gas_consumption: null
     overall_average_mileage_in_km: null
     overall_average_speed_in_kmph: null
     overall_average_travel_time_in_min: null

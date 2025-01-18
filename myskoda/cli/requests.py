@@ -49,6 +49,15 @@ async def air_conditioning(ctx: Context, vin: str, anonymize: bool) -> None:
 @click.argument("vin")
 @click.option("anonymize", "--anonymize", help="Strip all personal data.", is_flag=True)
 @click.pass_context
+async def auxiliary_heating(ctx: Context, vin: str, anonymize: bool) -> None:
+    """Print current status about auxiliary heating."""
+    await handle_request(ctx, ctx.obj["myskoda"].get_auxiliary_heating, vin, anonymize)
+
+
+@click.command()
+@click.argument("vin")
+@click.option("anonymize", "--anonymize", help="Strip all personal data.", is_flag=True)
+@click.pass_context
 async def positions(ctx: Context, vin: str, anonymize: bool) -> None:
     """Print the vehicle's current position."""
     await handle_request(ctx, ctx.obj["myskoda"].get_positions, vin, anonymize)
@@ -125,8 +134,17 @@ async def verify_spin(ctx: Context, spin: str, anonymize: bool) -> None:
 
 
 @click.command()
+@click.argument("vin")
+@click.option("anonymize", "--anonymize", help="Strip all personal data.", is_flag=True)
+@click.pass_context
+async def departure_timers(ctx: Context, vin: str, anonymize: bool) -> None:
+    """Get all departure timers."""
+    await handle_request(ctx, ctx.obj["myskoda"].get_departure_timers, vin, anonymize)
+
+
+@click.command()
 @click.pass_context
 async def auth(ctx: Context) -> None:
     """Extract the auth token."""
     myskoda: MySkoda = ctx.obj["myskoda"]
-    print(myskoda.get_auth_token())
+    print(await myskoda.get_auth_token())

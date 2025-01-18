@@ -1,3 +1,4 @@
+library_version: legacy
 description: null
 generation_time: '2024-11-06T11:44:39.619797+00:00'
 name: skoda octavia combi 2023
@@ -58,6 +59,8 @@ reports:
     capabilities:
       capabilities:
       - id: ACCESS
+        statuses: []
+      - id: ACTIVE_VENTILATION
         statuses: []
       - id: DEALER_APPOINTMENT
         statuses: []
@@ -286,7 +289,7 @@ reports:
       - FRIDAY
       - SATURDAY
       - SUNDAY
-      time: 00:00:00
+      time: 00:00
       type: RECURRING
     - enabled: false
       id: 2
@@ -298,7 +301,7 @@ reports:
       - FRIDAY
       - SATURDAY
       - SUNDAY
-      time: 00:00:00
+      time: 00:00
       type: RECURRING
     - enabled: false
       id: 3
@@ -310,13 +313,14 @@ reports:
       - FRIDAY
       - SATURDAY
       - SUNDAY
-      time: 00:00:00
+      time: 00:00
       type: RECURRING
     window_heating_enabled: null
     window_heating_state:
       front: INVALID
       rear: INVALID
       unspecified: INVALID
+    outside_temperature: null
   success: true
   type: get
   url: /v2/air-conditioning/TMOCKAA0AA000000
@@ -469,6 +473,7 @@ reports:
     - average_aux_consumption: null
       average_electric_consumption: null
       average_fuel_consumption: null
+      average_gas_consumption: null
       average_recuperation: null
       average_speed_in_kmph: null
       date: '2024-11-04'
@@ -478,6 +483,7 @@ reports:
     - average_aux_consumption: null
       average_electric_consumption: null
       average_fuel_consumption: null
+      average_gas_consumption: null
       average_recuperation: null
       average_speed_in_kmph: null
       date: '2024-11-05'
@@ -487,6 +493,7 @@ reports:
     - average_aux_consumption: null
       average_electric_consumption: null
       average_fuel_consumption: 8.6
+      average_gas_consumption: null
       average_recuperation: null
       average_speed_in_kmph: 24
       date: '2024-11-06'
@@ -497,6 +504,7 @@ reports:
     - average_aux_consumption: null
       average_electric_consumption: null
       average_fuel_consumption: null
+      average_gas_consumption: null
       average_recuperation: null
       average_speed_in_kmph: null
       date: '2024-11-07'
@@ -506,6 +514,7 @@ reports:
     - average_aux_consumption: null
       average_electric_consumption: null
       average_fuel_consumption: null
+      average_gas_consumption: null
       average_recuperation: null
       average_speed_in_kmph: null
       date: '2024-11-08'
@@ -515,6 +524,7 @@ reports:
     - average_aux_consumption: null
       average_electric_consumption: null
       average_fuel_consumption: null
+      average_gas_consumption: null
       average_recuperation: null
       average_speed_in_kmph: null
       date: '2024-11-09'
@@ -524,6 +534,7 @@ reports:
     - average_aux_consumption: null
       average_electric_consumption: null
       average_fuel_consumption: null
+      average_gas_consumption: null
       average_recuperation: null
       average_speed_in_kmph: null
       date: '2024-11-10'
@@ -532,6 +543,7 @@ reports:
       trip_ids: null
     overall_average_electric_consumption: null
     overall_average_fuel_consumption: 8.6
+    overall_average_gas_consumption: null
     overall_average_mileage_in_km: 1
     overall_average_speed_in_kmph: 24
     overall_average_travel_time_in_min: 2
@@ -545,6 +557,8 @@ reports:
 vehicles:
 - capabilities:
   - id: ACCESS
+    statuses: []
+  - id: ACTIVE_VENTILATION
     statuses: []
   - id: DEALER_APPOINTMENT
     statuses: []

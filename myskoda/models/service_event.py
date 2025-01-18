@@ -22,12 +22,13 @@ class ServiceEventName(StrEnum):
     CHARGING_COMPLETED = "charging-completed"
     CHARGING_STATUS_CHANGED = "charging-status-changed"
     CLIMATISATION_COMPLETED = "climatisation-completed"
+    DEPARTURE_READY = "departure-ready"
     DEPARTURE_STATUS_CHANGED = "departure-status-changed"
 
 
 @dataclass
 class ServiceEventData(DataClassORJSONMixin):
-    """Data for Service Events."""
+    """Base class for data in service events."""
 
     user_id: str = field(metadata=field_options(alias="userId"))
     vin: str
@@ -99,18 +100,12 @@ def _deserialize_time_to_finish(value: int | str) -> int | None:
 
 @dataclass
 class ServiceEventChargingData(ServiceEventData):
-    """Charging Data inside a Service Event."""
+    """Charging data inside charging service event change-soc."""
 
-    mode: ChargeMode | None = field(
-        default=None,
-        metadata=field_options(deserialize=_deserialize_mode),
-    )
-    state: ChargingState | None = field(
-        default=None,
-        metadata=field_options(deserialize=_deserialize_charging_state),
-    )
-    soc: int | None = field(default=None)
-    charged_range: int | None = field(default=None, metadata=field_options(alias="chargedRange"))
+    mode: ChargeMode = field(metadata=field_options(deserialize=_deserialize_mode))
+    state: ChargingState = field(metadata=field_options(deserialize=_deserialize_charging_state))
+    soc: int
+    charged_range: int = field(metadata=field_options(alias="chargedRange"))
     time_to_finish: int | None = field(
         default=None,
         metadata=field_options(alias="timeToFinish", deserialize=_deserialize_time_to_finish),
@@ -118,9 +113,7 @@ class ServiceEventChargingData(ServiceEventData):
 
 
 @dataclass
-class ServiceEventCharging(ServiceEvent, DataClassORJSONMixin):
-    """Charging details of a Service Event."""
-
+class ServiceEventWithChargingData(ServiceEvent):
     data: ServiceEventChargingData
 
 

@@ -24,10 +24,20 @@ from myskoda.models.fixtures import (
     create_fixture_vehicle,
 )
 
+from .__version__ import __version__ as version
 from .auth.authorization import Authorization
 from .event import Event
-from .models.air_conditioning import AirConditioning
+from .models.air_conditioning import (
+    AirConditioning,
+    AirConditioningAtUnlock,
+    AirConditioningTimer,
+    AirConditioningWithoutExternalPower,
+    SeatHeating,
+    WindowHeating,
+)
+from .models.auxiliary_heating import AuxiliaryConfig, AuxiliaryHeating, AuxiliaryHeatingTimer
 from .models.charging import ChargeMode, Charging
+from .models.departure import DepartureInfo, DepartureTimer
 from .models.driving_range import DrivingRange
 from .models.health import Health
 from .models.info import CapabilityId, Info
@@ -124,7 +134,7 @@ class MySkoda:
             user = await self.get_user()
             vehicles = await self.list_vehicle_vins()
             await self.mqtt.connect(user.id, vehicles)
-        _LOGGER.debug("Myskoda ready.")
+        _LOGGER.debug("MySkoda ready.")
 
     def subscribe(self, callback: Callable[[Event], None | Awaitable[None]]) -> None:
         """Listen for events emitted by MySkoda's MQTT broker."""
@@ -185,10 +195,22 @@ class MySkoda:
         await self.rest_api.set_battery_care_mode(vin, enabled)
         await future
 
+    async def set_auto_unlock_plug(self, vin: str, enabled: bool) -> None:
+        """Enable or disable auto unlock plug when charged."""
+        future = self._wait_for_operation(OperationName.UPDATE_AUTO_UNLOCK_PLUG)
+        await self.rest_api.set_auto_unlock_plug(vin, enabled)
+        await future
+
     async def set_charge_limit(self, vin: str, limit: int) -> None:
         """Set the maximum charge limit in percent."""
         future = self._wait_for_operation(OperationName.UPDATE_CHARGE_LIMIT)
         await self.rest_api.set_charge_limit(vin, limit)
+        await future
+
+    async def set_minimum_charge_limit(self, vin: str, limit: int) -> None:
+        """Set minimum battery SoC in percent for departure timer."""
+        future = self._wait_for_operation(OperationName.UPDATE_MINIMAL_SOC)
+        await self.rest_api.set_minimum_charge_limit(vin, limit)
         await future
 
     async def stop_window_heating(self, vin: str) -> None:
@@ -201,6 +223,32 @@ class MySkoda:
         """Start heating both the front and rear window."""
         future = self._wait_for_operation(OperationName.START_WINDOW_HEATING)
         await self.rest_api.start_window_heating(vin)
+        await future
+
+    async def set_ac_without_external_power(
+        self, vin: str, settings: AirConditioningWithoutExternalPower
+    ) -> None:
+        """Enable or disable AC without external power."""
+        future = self._wait_for_operation(OperationName.SET_AIR_CONDITIONING_WITHOUT_EXTERNAL_POWER)
+        await self.rest_api.set_ac_without_external_power(vin, settings)
+        await future
+
+    async def set_ac_at_unlock(self, vin: str, settings: AirConditioningAtUnlock) -> None:
+        """Enable or disable AC at unlock."""
+        future = self._wait_for_operation(OperationName.SET_AIR_CONDITIONING_AT_UNLOCK)
+        await self.rest_api.set_ac_at_unlock(vin, settings)
+        await future
+
+    async def set_windows_heating(self, vin: str, settings: WindowHeating) -> None:
+        """Enable or disable windows heating with AC."""
+        future = self._wait_for_operation(OperationName.WINDOWS_HEATING)
+        await self.rest_api.set_windows_heating(vin, settings)
+        await future
+
+    async def set_seats_heating(self, vin: str, settings: SeatHeating) -> None:
+        """Enable or disable seats heating with AC."""
+        future = self._wait_for_operation(OperationName.SET_AIR_CONDITIONING_SEATS_HEATING)
+        await self.rest_api.set_seats_heating(vin, settings)
         await future
 
     async def set_target_temperature(self, vin: str, temperature: float) -> None:
@@ -221,18 +269,32 @@ class MySkoda:
         await self.rest_api.stop_air_conditioning(vin)
         await future
 
-    async def start_auxiliary_heating(self, vin: str, temperature: float, spin: str) -> None:
-        """Start the auxiliary heating with the provided target temperature in °C."""
-        # NOTE: 08/11/2024 - no response is published in MQTT (maybe bug in api?) so we don't wait
+    async def start_auxiliary_heating(
+        self, vin: str, spin: str, config: AuxiliaryConfig | None = None
+    ) -> None:
+        """Start the auxiliary heating with the provided configuration."""
         future = self._wait_for_operation(OperationName.START_AUXILIARY_HEATING)
-        await self.rest_api.start_auxiliary_heating(vin, temperature, spin)
+        await self.rest_api.start_auxiliary_heating(vin, spin, config=config)
         await future
 
     async def stop_auxiliary_heating(self, vin: str) -> None:
         """Stop the auxiliary heating."""
-        # NOTE: 08/11/2024 - no response is published in MQTT (maybe bug in api?) so we don't wait
         future = self._wait_for_operation(OperationName.STOP_AUXILIARY_HEATING)
         await self.rest_api.stop_auxiliary_heating(vin)
+        await future
+
+    async def set_ac_timer(self, vin: str, timer: AirConditioningTimer) -> None:
+        """Send provided air-conditioning timer to the vehicle."""
+        future = self._wait_for_operation(OperationName.SET_AIR_CONDITIONING_TIMERS)
+        await self.rest_api.set_ac_timer(vin, timer)
+        await future
+
+    async def set_auxiliary_heating_timer(
+        self, vin: str, timer: AuxiliaryHeatingTimer, spin: str
+    ) -> None:
+        """Send provided auxiliary heating timer to the vehicle."""
+        future = self._wait_for_operation(OperationName.SET_AIR_CONDITIONING_TIMERS)
+        await self.rest_api.set_auxiliary_heating_timer(vin, timer, spin)
         await future
 
     async def lock(self, vin: str, spin: str) -> None:
@@ -246,6 +308,16 @@ class MySkoda:
         future = self._wait_for_operation(OperationName.UNLOCK)
         await self.rest_api.unlock(vin, spin)
         await future
+
+    async def set_departure_timer(self, vin: str, timer: DepartureTimer) -> None:
+        """Send provided departure timer to the vehicle."""
+        future = self._wait_for_operation(OperationName.UPDATE_DEPARTURE_TIMERS)
+        await self.rest_api.set_departure_timer(vin, timer)
+        await future
+
+    async def get_departure_timers(self, vin: str, anonymize: bool = False) -> DepartureInfo:
+        """Retrieve departure timers for the specified vehicle."""
+        return (await self.rest_api.get_departure_timers(vin, anonymize=anonymize)).result
 
     async def get_auth_token(self) -> str:
         """Retrieve the main access token for the IDK session."""
@@ -270,6 +342,10 @@ class MySkoda:
     async def get_air_conditioning(self, vin: str, anonymize: bool = False) -> AirConditioning:
         """Retrieve the current air conditioning status for the specified vehicle."""
         return (await self.rest_api.get_air_conditioning(vin, anonymize=anonymize)).result
+
+    async def get_auxiliary_heating(self, vin: str, anonymize: bool = False) -> AuxiliaryHeating:
+        """Retrieve the current auxiliary heating status for the specified vehicle."""
+        return (await self.rest_api.get_auxiliary_heating(vin, anonymize=anonymize)).result
 
     async def get_positions(self, vin: str, anonymize: bool = False) -> Positions:
         """Retrieve the current position for the specified vehicle."""
@@ -304,31 +380,67 @@ class MySkoda:
 
     async def get_vehicle(self, vin: str) -> Vehicle:
         """Load a full vehicle based on its capabilities."""
+        all_capabilities = [
+            CapabilityId.AIR_CONDITIONING,
+            CapabilityId.AUXILIARY_HEATING,
+            CapabilityId.CHARGING,
+            CapabilityId.PARKING_POSITION,
+            CapabilityId.STATE,
+            CapabilityId.TRIP_STATISTICS,
+            CapabilityId.VEHICLE_HEALTH_INSPECTION,
+            CapabilityId.DEPARTURE_TIMERS,
+        ]
+
+        return await self.get_partial_vehicle(vin, all_capabilities)
+
+    async def get_partial_vehicle(self, vin: str, capabilities: list[CapabilityId]) -> Vehicle:
+        """Load a partial vehicle, based on list of capabilities."""
         info = await self.get_info(vin)
         maintenance = await self.get_maintenance(vin)
 
         vehicle = Vehicle(info, maintenance)
 
-        if info.is_capability_available(CapabilityId.STATE):
-            vehicle.status = await self.get_status(vin)
-            vehicle.driving_range = await self.get_driving_range(vin)
-
-        if info.is_capability_available(CapabilityId.AIR_CONDITIONING):
-            vehicle.air_conditioning = await self.get_air_conditioning(vin)
-
-        if info.is_capability_available(CapabilityId.PARKING_POSITION):
-            vehicle.positions = await self.get_positions(vin)
-
-        if info.is_capability_available(CapabilityId.TRIP_STATISTICS):
-            vehicle.trip_statistics = await self.get_trip_statistics(vin)
-
-        if info.is_capability_available(CapabilityId.CHARGING):
-            vehicle.charging = await self.get_charging(vin)
-
-        if info.is_capability_available(CapabilityId.VEHICLE_HEALTH_INSPECTION):
-            vehicle.health = await self.get_health(vin)
+        for capa in capabilities:
+            # Only request vehicle health data if we do not need to wakeup the car
+            # This avoids triggering battery protection, such as in Skoda Karoq
+            # https://github.com/skodaconnect/homeassistant-myskoda/issues/468
+            if info.is_capability_available(capa):
+                if (
+                    capa == CapabilityId.VEHICLE_HEALTH_INSPECTION
+                    and CapabilityId.VEHICLE_HEALTH_WARNINGS_WITH_WAKE_UP
+                    in vehicle.info.capabilities.capabilities
+                ):
+                    _LOGGER.debug("Skipping request for capability %s.", capa)
+                    continue
+                await self._request_capability_data(vehicle, vin, capa)
 
         return vehicle
+
+    async def _request_capability_data(
+        self, vehicle: Vehicle, vin: str, capa: CapabilityId
+    ) -> None:
+        """Request specific capability data from MySkoda API."""
+        try:
+            match capa:
+                case CapabilityId.AIR_CONDITIONING:
+                    vehicle.air_conditioning = await self.get_air_conditioning(vin)
+                case CapabilityId.AUXILIARY_HEATING:
+                    vehicle.auxiliary_heating = await self.get_auxiliary_heating(vin)
+                case CapabilityId.CHARGING:
+                    vehicle.charging = await self.get_charging(vin)
+                case CapabilityId.PARKING_POSITION:
+                    vehicle.positions = await self.get_positions(vin)
+                case CapabilityId.STATE:
+                    vehicle.status = await self.get_status(vin)
+                    vehicle.driving_range = await self.get_driving_range(vin)
+                case CapabilityId.TRIP_STATISTICS:
+                    vehicle.trip_statistics = await self.get_trip_statistics(vin)
+                case CapabilityId.VEHICLE_HEALTH_INSPECTION:
+                    vehicle.health = await self.get_health(vin)
+                case CapabilityId.DEPARTURE_TIMERS:
+                    vehicle.departure_info = await self.get_departure_timers(vin)
+        except Exception as err:  # noqa: BLE001
+            _LOGGER.warning("Requesting %s failed: %s, continue", capa, err)
 
     async def get_all_vehicles(self) -> list[Vehicle]:
         """Load all vehicles based on their capabilities."""
@@ -364,30 +476,29 @@ class MySkoda:
         self, vin: str, endpoint: Endpoint, anonymize: bool = False
     ) -> GetEndpointResult[Any]:
         """Invoke a get endpoint by endpoint enum."""
-        result = GetEndpointResult(url="", result=None, raw="")
+        # Mapping of endpoints to corresponding methods
+        endpoint_method_map = {
+            Endpoint.INFO: self.rest_api.get_info,
+            Endpoint.STATUS: self.rest_api.get_status,
+            Endpoint.AIR_CONDITIONING: self.rest_api.get_air_conditioning,
+            Endpoint.AUXILIARY_HEATING: self.rest_api.get_auxiliary_heating,
+            Endpoint.POSITIONS: self.rest_api.get_positions,
+            Endpoint.HEALTH: self.rest_api.get_health,
+            Endpoint.CHARGING: self.rest_api.get_charging,
+            Endpoint.MAINTENANCE: self.rest_api.get_maintenance,
+            Endpoint.DRIVING_RANGE: self.rest_api.get_driving_range,
+            Endpoint.TRIP_STATISTICS: self.rest_api.get_trip_statistics,
+            Endpoint.DEPARTURE_INFO: self.rest_api.get_departure_timers,
+        }
 
-        if endpoint == Endpoint.INFO:
-            result = await self.rest_api.get_info(vin, anonymize=anonymize)
-        elif endpoint == Endpoint.STATUS:
-            result = await self.rest_api.get_status(vin, anonymize=anonymize)
-        elif endpoint == Endpoint.AIR_CONDITIONING:
-            result = await self.rest_api.get_air_conditioning(vin, anonymize=anonymize)
-        elif endpoint == Endpoint.POSITIONS:
-            result = await self.rest_api.get_positions(vin, anonymize=anonymize)
-        elif endpoint == Endpoint.HEALTH:
-            result = await self.rest_api.get_health(vin, anonymize=anonymize)
-        elif endpoint == Endpoint.CHARGING:
-            result = await self.rest_api.get_charging(vin, anonymize=anonymize)
-        elif endpoint == Endpoint.MAINTENANCE:
-            result = await self.rest_api.get_maintenance(vin, anonymize=anonymize)
-        elif endpoint == Endpoint.DRIVING_RANGE:
-            result = await self.rest_api.get_driving_range(vin, anonymize=anonymize)
-        elif endpoint == Endpoint.TRIP_STATISTICS:
-            result = await self.rest_api.get_trip_statistics(vin, anonymize=anonymize)
-        else:
-            raise UnsupportedEndpointError
+        # Look up the method, or raise an error if unsupported
+        method = endpoint_method_map.get(endpoint)
+        if not method:
+            error_message = f"Unsupported endpoint: {endpoint}"
+            raise UnsupportedEndpointError(error_message)
 
-        return result
+        # Call the method and return the result
+        return await method(vin, anonymize=anonymize)
 
     async def generate_get_fixture(
         self, name: str, description: str, vins: list[str], endpoint: Endpoint
@@ -415,6 +526,7 @@ class MySkoda:
             generation_time=datetime.now(tz=UTC),
             vehicles=[vehicle for (_, vehicle) in vehicles],
             reports=reports,
+            library_version=version,
         )
 
 

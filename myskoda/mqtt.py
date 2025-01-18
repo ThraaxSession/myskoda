@@ -7,20 +7,24 @@ import asyncio
 import logging
 import re
 import ssl
+import uuid
 from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
+from random import uniform
 from typing import Any, cast
 
 import aiomqtt
 
 from myskoda.auth.authorization import Authorization
-from myskoda.models.service_event import ServiceEvent, ServiceEventCharging
+from myskoda.models.service_event import ServiceEvent, ServiceEventWithChargingData
 
 from .const import (
     MQTT_ACCOUNT_EVENT_TOPICS,
     MQTT_BROKER_HOST,
     MQTT_BROKER_PORT,
+    MQTT_FAST_RETRY,
     MQTT_KEEPALIVE,
+    MQTT_MAX_RECONNECT_DELAY,
     MQTT_OPERATION_TOPICS,
     MQTT_RECONNECT_DELAY,
     MQTT_SERVICE_EVENT_TOPICS,
@@ -30,6 +34,7 @@ from .event import (
     EventAccess,
     EventAccountPrivacy,
     EventAirConditioning,
+    EventAuxiliaryHeating,
     EventCharging,
     EventDeparture,
     EventLights,
@@ -40,6 +45,7 @@ from .models.operation_request import OperationName, OperationRequest, Operation
 
 _LOGGER = logging.getLogger(__name__)
 TOPIC_RE = re.compile("^(.*?)/(.*?)/(.*?)/(.*?)$")
+app_uuid = uuid.uuid4()
 
 
 def _create_ssl_context() -> ssl.SSLContext:
@@ -98,6 +104,7 @@ class MySkodaMqttClient:
         self._listener_task = None
         self._running = False
         self._subscribed = asyncio.Event()
+        self._reconnect_delay = MQTT_RECONNECT_DELAY
 
     async def connect(self, user_id: str, vehicle_vins: list[str]) -> None:
         """Connect to the MQTT broker and listen for messages for the given user_id and VINs."""
@@ -140,16 +147,22 @@ class MySkodaMqttClient:
         """
         _LOGGER.debug("Starting _connect_and_listen")
         self._running = True
+        retry_count = 0  # Track the number of retries
+        self._reconnect_delay = MQTT_RECONNECT_DELAY  # Initial delay for backoff
         while self._running:
             try:
+                # client_id = Id + session_uuid4 + # + random_uuid4
+                client_id = "Id" + str(app_uuid) + "#" + str(uuid.uuid4())
                 async with aiomqtt.Client(
                     hostname=self.hostname,
                     port=self.port,
-                    username=self.user_id,
+                    username="android-app",  # Explicit username from working payload
+                    identifier=client_id,
                     password=await self.authorization.get_access_token(),
                     logger=_LOGGER,
                     tls_context=_SSL_CONTEXT if self.enable_ssl else None,
                     keepalive=MQTT_KEEPALIVE,
+                    clean_session=True,
                 ) as client:
                     _LOGGER.info("Connected to MQTT")
                     _LOGGER.debug("using MQTT client %s", client)
@@ -164,11 +177,24 @@ class MySkodaMqttClient:
                             await client.subscribe(f"{self.user_id}/{vin}/account-event/{topic}")
 
                     self._subscribed.set()
+                    self._reconnect_delay = MQTT_RECONNECT_DELAY
+                    retry_count = 0  # Reset retry count on successful connection
                     async for message in client.messages:
                         self._on_message(message)
             except aiomqtt.MqttError as exc:
-                _LOGGER.info("Connection lost (%s); reconnecting in %ss", exc, MQTT_RECONNECT_DELAY)
-                await asyncio.sleep(MQTT_RECONNECT_DELAY)
+                retry_count += 1
+                _LOGGER.info(
+                    "Connection lost (%s); reconnecting in %ss", exc, self._reconnect_delay
+                )
+                await asyncio.sleep(self._reconnect_delay)
+                if (
+                    retry_count > MQTT_FAST_RETRY
+                    and self._reconnect_delay < MQTT_MAX_RECONNECT_DELAY
+                ):  # first x retries are not exponential
+                    self._reconnect_delay *= 2
+                    self._reconnect_delay += uniform(0, 1)  # noqa: S311
+                    self._reconnect_delay = min(self._reconnect_delay, MQTT_MAX_RECONNECT_DELAY)
+                    _LOGGER.debug("Increased reconnect backoff to %s", self._reconnect_delay)
 
     def _on_message(self, msg: aiomqtt.Message) -> None:
         """Deserialize received MQTT message and emit Event to subscribed callbacks."""
@@ -186,6 +212,14 @@ class MySkodaMqttClient:
             return
 
         self._parse_topic(topic_match, data)
+
+    @staticmethod
+    def _get_charging_event(data: str) -> ServiceEvent:
+        try:
+            event = ServiceEventWithChargingData.from_json(data)
+        except ValueError:
+            event = ServiceEvent.from_json(data)
+        return event
 
     def _parse_topic(self, topic_match: re.Match[str], data: str) -> None:
         """Parse the topic and extract relevant parts."""
@@ -222,13 +256,22 @@ class MySkodaMqttClient:
                         event=ServiceEvent.from_json(data),
                     )
                 )
+            elif event_type == EventType.SERVICE_EVENT and topic == "auxiliary-heating":
+                self._emit(
+                    EventAuxiliaryHeating(
+                        vin=vin,
+                        user_id=user_id,
+                        timestamp=datetime.now(tz=UTC),
+                        event=ServiceEvent.from_json(data),
+                    )
+                )
             elif event_type == EventType.SERVICE_EVENT and topic == "charging":
                 self._emit(
                     EventCharging(
                         vin=vin,
                         user_id=user_id,
                         timestamp=datetime.now(tz=UTC),
-                        event=ServiceEventCharging.from_json(data),
+                        event=self._get_charging_event(data),
                     )
                 )
             elif event_type == EventType.SERVICE_EVENT and topic == "departure":

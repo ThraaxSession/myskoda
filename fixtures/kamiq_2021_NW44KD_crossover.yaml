@@ -1,3 +1,4 @@
+library_version: legacy
 description: null
 generation_time: '2024-11-09T19:56:00.188385+00:00'
 name: Kamiq
@@ -225,6 +226,7 @@ reports:
       front: INVALID
       rear: INVALID
       unspecified: INVALID
+    outside_temperature: null
   success: true
   type: get
   url: /v2/air-conditioning/TMOCKAA0AA000000
@@ -333,21 +335,21 @@ reports:
     [], "bookingHistory": [{"creationDate": "2024-01-12T10:25:49Z", "confirmationDate":
     "2024-01-12T10:30:23.431Z", "closedDate": "2024-03-13T07:37:00Z", "appointmentDate":
     "2024-03-13T07:37:00Z", "contactedDate": "2024-01-15T08:22:35Z", "updateDate":
-    "2024-03-30T02:11:11.255Z", "servicePartner": {"name": "Garage Korterink", "brand":
-    "C", "partnerNumber": "00156", "id": "NLDC00156", "contact": {"phone": "0522-291206",
-    "email": "werkplaats@korterinkautos.nl"}, "address": {"street": "Oude Rijksweg
-    512", "zipCode": "7954 GG", "city": "Rouveen", "countryCode": "NLD"}, "location":
-    {"latitude": 52.585976, "longitude": 6.192439}, "openingHours": []}, "bookingId":
+    "2024-03-30T02:11:11.255Z", "servicePartner": {"name": "Example Service Partner", "brand":
+    "C", "partnerNumber": "1111", "id": "DEU11111", "contact": {"phone": "+49 1234 567890",
+    "email": "user@example.com"}, "address": {"street": "Example Avenue
+    15", "zipCode": "54321", "city": "Example City", "countryCode": "DEU"}, "location":
+    {"latitude": 53.470636, "longitude": 9.689872}, "openingHours": []}, "bookingId":
     "4b437397-9f76-4bc9-8972-bb4af0fc9d31-1705055157793", "mileageInKm": 58777, "resolution":
     "APPOINTMENT", "type": "AUTO", "extras": [], "addOns": {}, "warnings": [{"iconName":
     "", "messageId": "A644", "notificationId": 42564, "text": "42564"}]}, {"creationDate":
     "2023-08-17T11:32:50Z", "acceptedDate": "2023-08-17T12:32:07Z", "confirmationDate":
     "2023-08-17T11:35:01.656Z", "closedDate": "2023-08-18T05:58:02Z", "updateDate":
-    "2023-08-18T06:00:05.449Z", "servicePartner": {"name": "Garage Korterink", "brand":
-    "C", "partnerNumber": "00156", "id": "NLDC00156", "contact": {"phone": "0522-291206",
-    "email": "werkplaats@korterinkautos.nl"}, "address": {"street": "Oude Rijksweg
-    512", "zipCode": "7954 GG", "city": "Rouveen", "countryCode": "NLD"}, "location":
-    {"latitude": 52.585976, "longitude": 6.192439}, "openingHours": []}, "bookingId":
+    "2023-08-18T06:00:05.449Z", "servicePartner": {"name": "Example Service Partner", "brand":
+    "C", "partnerNumber": "1111", "id": "DEU11111", "contact": {"phone": "+49 1234 567890",
+    "email": "user@example.com"}, "address": {"street": "Example Avenue
+    15", "zipCode": "54321", "city": "Example City", "countryCode": "DEU"}, "location":
+    {"latitude": 53.470636, "longitude": 9.689872}, "openingHours": []}, "bookingId":
     "426ff0a7-8f11-44f9-a235-ebe259c4b52c-1692271996343", "mileageInKm": 49670, "resolution":
     "REJECTED", "type": "AUTO", "extras": [], "addOns": {}, "warnings": [{"iconName":
     "", "messageId": "A224", "notificationId": 41508, "text": "Please add maximum
@@ -456,6 +458,7 @@ reports:
     - average_aux_consumption: null
       average_electric_consumption: null
       average_fuel_consumption: 7.1
+      average_gas_consumption: null
       average_recuperation: null
       average_speed_in_kmph: 42
       date: '2024-11-04'
@@ -466,6 +469,7 @@ reports:
     - average_aux_consumption: null
       average_electric_consumption: null
       average_fuel_consumption: 5.3
+      average_gas_consumption: null
       average_recuperation: null
       average_speed_in_kmph: 71
       date: '2024-11-05'
@@ -477,6 +481,7 @@ reports:
     - average_aux_consumption: null
       average_electric_consumption: null
       average_fuel_consumption: 8.3
+      average_gas_consumption: null
       average_recuperation: null
       average_speed_in_kmph: 30
       date: '2024-11-06'
@@ -487,6 +492,7 @@ reports:
     - average_aux_consumption: null
       average_electric_consumption: null
       average_fuel_consumption: 5.75
+      average_gas_consumption: null
       average_recuperation: null
       average_speed_in_kmph: 86
       date: '2024-11-07'
@@ -498,6 +504,7 @@ reports:
     - average_aux_consumption: null
       average_electric_consumption: null
       average_fuel_consumption: 5.97
+      average_gas_consumption: null
       average_recuperation: null
       average_speed_in_kmph: 55
       date: '2024-11-08'
@@ -509,6 +516,7 @@ reports:
     - average_aux_consumption: null
       average_electric_consumption: null
       average_fuel_consumption: 14.2
+      average_gas_consumption: null
       average_recuperation: null
       average_speed_in_kmph: 17
       date: '2024-11-09'
@@ -519,6 +527,7 @@ reports:
     - average_aux_consumption: null
       average_electric_consumption: null
       average_fuel_consumption: null
+      average_gas_consumption: null
       average_recuperation: null
       average_speed_in_kmph: null
       date: '2024-11-10'
@@ -527,6 +536,7 @@ reports:
       trip_ids: null
     overall_average_electric_consumption: null
     overall_average_fuel_consumption: 5.79
+    overall_average_gas_consumption: null
     overall_average_mileage_in_km: 83
     overall_average_speed_in_kmph: 71
     overall_average_travel_time_in_min: 77

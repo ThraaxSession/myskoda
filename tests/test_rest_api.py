@@ -1,12 +1,14 @@
 """Unit tests for myskoda.rest_api."""
 
 import json
+import re
 from pathlib import Path
 
 import pytest
 from aioresponses import aioresponses
 
 from myskoda.models.common import OpenState
+from myskoda.models.departure import DepartureInfo
 from myskoda.models.status import DoorWindowState
 from myskoda.models.trip_statistics import VehicleType
 from myskoda.myskoda import MySkoda
@@ -94,6 +96,7 @@ def load_air_conditioning() -> list[str]:
     air_conditioning = []
     for path in [
         "enyaq/air-conditioning-heating.json",
+        "enyaq/air-conditioning-no-steering.json",
         "other/air-conditioning-idle.json",
         "superb/air-conditioning-aux-heater.json",
         "superb/air-conditioning-idle.json",
@@ -120,9 +123,40 @@ async def test_get_air_conditioning(
 
         assert get_status_result.state == air_conditioning_status_json["state"]
         assert (
-            get_status_result.window_heating_state.front
+            get_status_result.window_heating_state is None
+            or get_status_result.window_heating_state.front
             == air_conditioning_status_json["windowHeatingState"]["front"]
         )
+
+
+@pytest.fixture(name="auxiliary_heating")
+def load_auxiliary_heating() -> list[str]:
+    """Load auxiliary_heating fixture."""
+    auxiliary_heating = []
+    for path in [
+        "other/auxiliary-heating-idle.json",
+    ]:
+        with FIXTURES_DIR.joinpath(path).open() as file:
+            auxiliary_heating.append(file.read())
+    return auxiliary_heating
+
+
+@pytest.mark.asyncio
+async def test_get_auxiliary_heating(
+    auxiliary_heating: list[str], myskoda: MySkoda, responses: aioresponses
+) -> None:
+    """Example unit test for RestAPI.get_auxiliary_heating(). Needs more work."""
+    for auxiliary_heating_status in auxiliary_heating:
+        auxiliary_heating_status_json = json.loads(auxiliary_heating_status)
+
+        target_vin = "TMBJM0CKV1N12345"
+        responses.get(
+            url=f"https://mysmob.api.connect.skoda-auto.cz/api/v2/air-conditioning/{target_vin}/auxiliary-heating",
+            body=auxiliary_heating_status,
+        )
+        get_status_result = await myskoda.get_auxiliary_heating(target_vin)
+
+        assert get_status_result.state == auxiliary_heating_status_json["state"]
 
 
 @pytest.mark.asyncio
@@ -255,3 +289,35 @@ async def test_get_spin_status(
             assert (
                 get_spin_status_result.spin_status.state == spin_status_json["spinStatus"]["state"]
             )
+
+
+@pytest.fixture(name="departure_timers")
+def load_departure_timers() -> list[str]:
+    """Load departure timers fixture."""
+    departure_timers = []
+    for path in [
+        "other/departure-timers.json",
+    ]:
+        with FIXTURES_DIR.joinpath(path).open() as file:
+            departure_timers.append(file.read())
+    return departure_timers
+
+
+@pytest.mark.asyncio
+async def test_get_departure_timers(
+    departure_timers: list[str], myskoda: MySkoda, responses: aioresponses
+) -> None:
+    """Example unit test for RestAPI.charging(). Needs more work."""
+    for departure_timer in departure_timers:
+        target_vin = "TMBJM0CKV1N12345"
+        base_url = f"https://mysmob.api.connect.skoda-auto.cz/api/v1/vehicle-automatization/{target_vin}/departure/timers"
+        # Add a regular expression for the dynamic timestamp query parameter
+        url_pattern = re.compile(rf"{base_url}\?deviceDateTime=.*")
+
+        responses.get(
+            url=url_pattern,
+            body=departure_timer,
+        )
+        get_departure_timers_result = await myskoda.get_departure_timers(target_vin)
+
+        assert get_departure_timers_result == DepartureInfo.from_json(departure_timer)
